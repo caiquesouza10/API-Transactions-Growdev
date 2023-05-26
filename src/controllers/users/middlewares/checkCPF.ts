@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { usersDb } from "../../../database/users.db";
+import { ApiResponse } from "../../../util/http-response.adapter";
 
 export class CpfMiddleware {
   public static validateCpf(req: Request, res: Response, next: NextFunction) {
@@ -10,17 +11,14 @@ export class CpfMiddleware {
       if (existeCpf) {
         return res.status(403).send({
           ok: false,
-          message: "Cpf já cadastrado",
+          message: "Cpf já cadastrado: " + cpf,
         });
       }
 
       next();
       
     } catch (error: any) {
-      return res.status(500).send({
-        ok: false,
-        message: error.toString(),
-      });
+      return ApiResponse.serverError(res, error);
     }
   }
 }

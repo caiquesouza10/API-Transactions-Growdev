@@ -1,6 +1,7 @@
 import { Response, Request } from "express";
 import { User } from "../../classes/user";
 import { usersDb } from "../../database/users.db";
+import { ApiResponse } from "../../util/http-response.adapter";
 
 
 export class UserController {
@@ -101,10 +102,7 @@ export class UserController {
         data: deleteUser[0].toJson(), // mostra todos os growdevers deletado
       });
     } catch (error: any) {
-      return res.status(500).send({
-        ok: false,
-        message: error.toString(),
-      });
+      return ApiResponse.serverError(res, error);
     }
   }
 
