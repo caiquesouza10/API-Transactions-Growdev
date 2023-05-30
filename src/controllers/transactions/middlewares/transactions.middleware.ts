@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { Type } from "../../../classes/transactions";
 
 
 export const transactionCheck = (req: Request, res: Response, next: NextFunction) => {
@@ -25,21 +26,21 @@ export const transactionCheck = (req: Request, res: Response, next: NextFunction
     });
   }
 
-  // const teste = Object.values(Type)
+  const teste = Object.values(Type)
 
-  // if(!teste.includes(type)){
-  //   return res.status(404).send({
-	// 		ok: false,
-	// 		message:'O tipo do valor está inválido, informe corretamente o tipo ("income" ou "outcome")',
-	// 	});
-  // }
-
-  if (type !== "income" && type !== "outcome") {
-		return res.status(404).send({
+  if(!teste.includes(type)){
+    return res.status(404).send({
 			ok: false,
 			message:'O tipo do valor está inválido, informe corretamente o tipo (income ou outcome)',
 		});
-	}
+  }
+
+  // if (type !== "income" && type !== "outcome") {
+	// 	return res.status(404).send({
+	// 		ok: false,
+	// 		message:'O tipo do valor está inválido, informe corretamente o tipo (income ou outcome)',
+	// 	});
+	// }
 
 
   next();
