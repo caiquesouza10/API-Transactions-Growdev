@@ -1,6 +1,6 @@
 import { v4 as createUuid } from "uuid";
 
-enum Type {
+export enum Type {
   Input = "income",
   Output = "outcome",
 }
