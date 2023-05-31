@@ -1,6 +1,6 @@
 import { Response, Request } from "express";
 import { usersDb } from "../../database/users.db";
-import { Transactions } from "../../classes/transactions";
+import { Transactions, Type } from "../../classes/transactions";
 import { ApiResponse } from "../../util/http-response.adapter";
 
 export class TransactionController {
@@ -65,51 +65,96 @@ export class TransactionController {
     }
   }
 
+  //DESSA MANEIRA TBM FUNCIONA
+  // public listTodasTransactions(req: Request, res: Response) {
+  //   try {
+  //     const { idUser } = req.params;
+  //     const { title, type } = req.query;
+
+  //     const existeUser = usersDb.find((user) => user.id === idUser);
+
+  //     if (!existeUser?.transaction) {
+  //       return res.status(404).send({
+  //         ok: false,
+  //         message: `Transacão do usuário ${existeUser!.name} não encontrada!`,
+  //       });
+  //     }
+
+  //     let somarIncome = 0;
+  //     let somarOutcome = 0;
+  //     for (let transaction of existeUser.transaction) {
+  //       if (transaction.type === "income") {
+  //         somarIncome += transaction.value;
+  //       }
+
+  //       if (transaction.type === "outcome") {
+  //         somarOutcome += transaction.value;
+  //       }
+  //     }
+
+  //     let result = somarIncome - somarOutcome;
+
+  //     if (!type && !title) {
+  //       res.status(200).json({
+  //         ok: true,
+  //         message: `Todas as transações do usuário ${existeUser?.name}`,
+  //         data: existeUser.transaction,
+  //         balance: {
+  //           income: somarIncome,
+  //           outcome: somarOutcome,
+  //           Total: result,
+  //         },
+  //       });
+  //     }
+
+  //     const transactionType = existeUser.transaction.filter(
+  //       (trans) => trans.type === type
+  //     );
+  //     const transactionTitle = existeUser.transaction.filter(
+  //       (trans) => trans.title === title
+  //     );
+
+  //     if (type) {
+  //       return res.json({
+  //         message: "Transação filtrada por tipo",
+  //         transacao: transactionType,
+  //       });
+  //     }
+
+  //     if (title) {
+  //       return res.json({
+  //         message: "Transação filtrada por titulo",
+  //         transacao: transactionTitle,
+  //       });
+  //     }
+  //   } catch (error: any) {
+  //     return res.status(500).send({
+  //       ok: false,
+  //       message: error.toString(),
+  //     });
+  //   }
+  // } 
+
+  
+  //PREFERI DESSA MANEIRA POIS E MENOS VERBOSO O CODIGO MAIS LEGIVEL 
   public listTodasTransactions(req: Request, res: Response) {
     try {
       const { idUser } = req.params;
       const { title, type } = req.query;
 
-      const existeUser = usersDb.find((user) => user.id === idUser);
-
-      if (!existeUser?.transaction) {
-        return res.status(404).send({
-          ok: false,
-          message: `Transacão do usuário ${existeUser!.name} não encontrada!`,
-        });
+      const existeIduser = usersDb.find((user) => user.id === idUser);
+      if (!existeIduser?.transaction) {
+        return ApiResponse.notFound(
+          res,
+          `Transação do usuario ${existeIduser?.name} não encontrado!`
+        );
       }
+      const transactions = existeIduser.transaction;
 
-      let somarIncome = 0;
-      let somarOutcome = 0;
-      for (let transaction of existeUser.transaction) {
-        if (transaction.type === "income") {
-          somarIncome += transaction.value;
-        }
-
-        if (transaction.type === "outcome") {
-          somarOutcome += transaction.value;
-        }
-      }
-
-      let result = somarIncome - somarOutcome;
-
-      if (!type && !title) {
-        res.status(200).json({
-          ok: true,
-          message: `Todas as transações do usuário ${existeUser?.name}`,
-          data: existeUser.transaction,
-          balance: {
-            income: somarIncome,
-            outcome: somarOutcome,
-            Total: result,
-          },
-        });
-      }
-
-      const transactionType = existeUser.transaction.filter(
+      const transactionType = transactions.filter(
         (trans) => trans.type === type
       );
-      const transactionTitle = existeUser.transaction.filter(
+      const transactionTitle = transactions.filter(
         (trans) => trans.title === title
       );
 
@@ -126,11 +171,21 @@ export class TransactionController {
           transacao: transactionTitle,
         });
       }
-    } catch (error: any) {
-      return res.status(500).send({
-        ok: false,
-        message: error.toString(),
+
+      let input = transactions
+        .filter((t) => t.type === Type.Input)
+        .reduce((soma, transaction) => soma + transaction.value, 0);
+
+      let output = transactions
+        .filter((t) => t.type === Type.Output)
+        .reduce((soma, transaction) => soma + transaction.value, 0);
+
+      return ApiResponse.success(res, `Todas as transações do usuário ${existeIduser.name}`, {
+        transactions,
+        balance: { input, output, total: input - output },
       });
+    } catch (error: any) {
+      return ApiResponse.serverError(res, error);
     }
   }
 
